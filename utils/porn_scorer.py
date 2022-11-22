@@ -10,20 +10,20 @@ from retrying import retry
 
 class PornScorer:
     def __init__(self, core_num=10) -> None:
+        self.result_txt_path = None
         self.executor = ThreadPoolExecutor(core_num)
         self.futures = []
         self.b_time = time.time()
 
     def set_result_txt_path(self, output_pic_dir):
-        if self.result_txt_path:
-            return
-        self.result_txt_path = os.path.join(output_pic_dir, 'porn_score_result.txt')
+        if self.result_txt_path is None:
+            self.result_txt_path = os.path.join(output_pic_dir, 'porn_score_result.txt')
 
     def submit_get_score_task(self, output_pic_path):
         def get_porn_score_with_txt(img_path):
             try:
                 _, _, score = PornScorer.get_porn_score(img_path)
-                with open(self.result_txt_path, 'a', encoding='utf-8') as f:
+                with open(self.result_txt_path, 'a', encoding='utf-8') as f:  # type: ignore
                     f.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
 
                 total_count = len(self.futures)
