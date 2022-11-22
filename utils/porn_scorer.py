@@ -42,7 +42,7 @@ class PornScorer:
         print("打分处理完毕...")
 
     @staticmethod
-    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+    @retry(wait_fixed=2000, stop_max_delay=60000)
     def get_porn_score(img_path):
         try:
             url = 'https://ai.hn-ssc.com/api/v1/image/get_vision_porn/'
