@@ -37,7 +37,7 @@ def extract_frame(video_path, interval=1):
     for _ in tqdm(range(task_count), desc="抽帧"):
         vidcap.set(cv2.CAP_PROP_POS_MSEC, second*1000)
         (frameState, frame) = vidcap.read()
-        output_pic_name = f"{str(second).zfill(5)}.jpg"
+        output_pic_name = f"{_time_format(second)}.jpg"
         if not frameState:
             break
         cv2.imwrite(output_pic_name, frame)
@@ -48,6 +48,17 @@ def extract_frame(video_path, interval=1):
     vidcap.release()
 
     os.chdir(path_)
+
+
+def _time_format(total_second):
+    hour = int(total_second/3600)
+    total_second -= 3600 * hour
+    minute = int(total_second/60)
+    total_second -= 60 * minute
+    hour = str(hour).zfill(2)
+    minute = str(minute).zfill(2)
+    second = str(total_second).zfill(2)
+    return f"{hour}_{minute}_{second}"
 
 
 def invoke_extract_frame(video_path, interval=1):

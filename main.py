@@ -1,7 +1,9 @@
 import os
 import sys
-from utils.porn_scorer import PornScorer
+from datetime import datetime
+
 from utils.extracti_video_frames import extract_frame
+from utils.porn_scorer import PornScorer
 
 
 class CheesecaseCatcher:
@@ -18,12 +20,12 @@ class CheesecaseCatcher:
         self.result_txt_path = self.porn_scorer.result_txt_path
 
     def run(self):
-        print(f"开始处理：{self.video_path}")
+        print(f"[{datetime.now().strftime('%F %X')}] 开始处理：{self.video_path}")
         self.extract_frame_and_get_score()
 
 
 if __name__ == '__main__':
     data_dir = 'data'
     for i in os.listdir(data_dir):
-        c = CheesecaseCatcher(os.path.join(os.path.abspath(data_dir),i))
+        c = CheesecaseCatcher(os.path.join(os.path.abspath(data_dir), i))
         c.run()
