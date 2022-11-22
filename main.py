@@ -23,6 +23,7 @@ class CheesecaseCatcher:
 
 
 if __name__ == '__main__':
-    for i in os.listdir('data'):
-        c = CheesecaseCatcher(i)
+    data_dir = 'data'
+    for i in os.listdir(data_dir):
+        c = CheesecaseCatcher(os.path.join(os.path.abspath(data_dir),i))
         c.run()
