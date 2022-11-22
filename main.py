@@ -6,7 +6,7 @@ from utils.extracti_video_frames import extract_frame
 
 class CheesecaseCatcher:
     def __init__(self, video_path, interval=1) -> None:
-        self.video_path = video_path
+        self.video_path = os.path.abspath(video_path)
         self.interval = interval
         self.porn_scorer = PornScorer()
 
@@ -24,5 +24,5 @@ class CheesecaseCatcher:
 
 if __name__ == '__main__':
     for i in os.listdir('data'):
-        c = CheesecaseCatcher(os.path.abspath(i))
+        c = CheesecaseCatcher(i)
         c.run()
