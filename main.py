@@ -10,8 +10,8 @@ class CheesecaseCatcher:
         self.porn_scorer = PornScorer()
 
     def extract_frame_and_get_score(self):
-        for (output_pic_dir, output_pic_path) in extract_frame(self.video_path, self.interval):
-            self.porn_scorer.set_result_txt_path(output_pic_dir)
+        for (output_pic_dir, output_pic_path, task_count) in extract_frame(self.video_path, self.interval):
+            self.porn_scorer.set_param(output_pic_dir, task_count)
             self.porn_scorer.submit_get_score_task(output_pic_path)
         self.porn_scorer.wait_finish()
         self.result_txt_path = self.porn_scorer.result_txt_path

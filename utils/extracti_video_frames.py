@@ -30,17 +30,18 @@ def extract_frame(video_path, interval=1):
         raise UserWarning("视频没有正常打开！")
     fps = vidcap.get(cv2.CAP_PROP_FPS)
     frame_count = vidcap.get(cv2.CAP_PROP_FRAME_COUNT)
+    task_count = ceil(frame_count/fps/interval)
     print(f"视频帧数为：{fps}，总帧数为：{frame_count}")
 
     second = 0
-    for _ in tqdm(range(ceil(frame_count/fps/interval)), desc="抽帧"):
+    for _ in tqdm(range(task_count), desc="抽帧"):
         vidcap.set(cv2.CAP_PROP_POS_MSEC, second*1000)
         (frameState, frame) = vidcap.read()
         output_pic_name = f"{str(second).zfill(5)}.jpg"
         if not frameState:
             break
         cv2.imwrite(output_pic_name, frame)
-        yield (os.path.join(output_pic_dir), os.path.abspath(output_pic_name))
+        yield (os.path.join(output_pic_dir), os.path.abspath(output_pic_name), task_count)
         second += interval
 
     print("抽帧处理完毕...")

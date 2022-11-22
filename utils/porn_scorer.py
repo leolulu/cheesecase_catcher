@@ -6,6 +6,7 @@ import time
 
 import requests
 from retrying import retry
+from tqdm import tqdm
 
 
 class PornScorer:
@@ -15,9 +16,10 @@ class PornScorer:
         self.futures = []
         self.b_time = time.time()
 
-    def set_result_txt_path(self, output_pic_dir):
+    def set_param(self, output_pic_dir, task_count):
         if self.result_txt_path is None:
             self.result_txt_path = os.path.join(output_pic_dir, 'porn_score_result.txt')
+            self.pbar = tqdm(total=task_count, desc="打分")
 
     def submit_get_score_task(self, output_pic_path):
         def get_porn_score_with_txt(img_path):
@@ -25,20 +27,14 @@ class PornScorer:
                 _, _, score = PornScorer.get_porn_score(img_path)
                 with open(self.result_txt_path, 'a', encoding='utf-8') as f:  # type: ignore
                     f.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
-
-                total_count = len(self.futures)
-                done_count = len([i for i in self.futures if i.done()])
-                time_past = time.time() - self.b_time
-                percent = done_count/total_count
-                if percent > 0:
-                    time_left = time_past/percent - time_past
-                    print(f"打分进度：{round(percent*100,1)}%，剩余时间：{round(time_left/60,1)}分钟...")
+                self.pbar.update()
             except:
                 print(traceback.format_exc())
         self.futures.append(self.executor.submit(get_porn_score_with_txt, output_pic_path))
 
     def wait_finish(self):
         wait(self.futures)
+        self.pbar.close()
         print("打分处理完毕...")
 
     @staticmethod
