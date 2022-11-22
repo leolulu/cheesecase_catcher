@@ -1,3 +1,4 @@
+import os
 import sys
 from utils.porn_scorer import PornScorer
 from utils.extracti_video_frames import extract_frame
@@ -17,10 +18,11 @@ class CheesecaseCatcher:
         self.result_txt_path = self.porn_scorer.result_txt_path
 
     def run(self):
+        print(f"开始处理：{self.video_path}")
         self.extract_frame_and_get_score()
 
 
 if __name__ == '__main__':
-    video_path = sys.argv[1]
-    c = CheesecaseCatcher(video_path)
-    c.run()
+    for i in os.listdir('data'):
+        c = CheesecaseCatcher(os.path.abspath(i))
+        c.run()
