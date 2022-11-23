@@ -1,20 +1,33 @@
 import json
 import os
-from concurrent.futures import ThreadPoolExecutor, wait
-import traceback
 import time
+import traceback
+from concurrent.futures import ThreadPoolExecutor, wait
 
 import requests
 from retrying import retry
 from tqdm import tqdm
 
+from tensorflow_nsfw.classify_nsfw import YahooNsfwClassify
+
 
 class PornScorer:
-    def __init__(self, core_num=10) -> None:
+    TYPE_ONLINE = 'type_online'
+    TYPE_OFFLINE = 'type_offline'
+
+    def __init__(self, scorer_type, core_num=10) -> None:
+        self.scorer_type = scorer_type
+        self.core_num = core_num
+        self._init_scorer()
         self.result_txt_path = None
-        self.executor = ThreadPoolExecutor(core_num)
         self.futures = []
         self.b_time = time.time()
+
+    def _init_scorer(self):
+        if self.scorer_type == PornScorer.TYPE_OFFLINE:
+            self.offline_scorer = YahooNsfwClassify()
+            self.core_num = 1
+        self.executor = ThreadPoolExecutor(self.core_num)
 
     def set_param(self, output_pic_dir, task_count):
         if self.result_txt_path is None:
@@ -24,7 +37,7 @@ class PornScorer:
     def submit_get_score_task(self, output_pic_path):
         def get_porn_score_with_txt(img_path):
             try:
-                _, _, score = PornScorer.get_porn_score(img_path)
+                score = self.get_porn_score(img_path)
                 with open(self.result_txt_path, 'a', encoding='utf-8') as f:  # type: ignore
                     f.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
                 self.pbar.update()
@@ -37,9 +50,17 @@ class PornScorer:
         self.pbar.close()
         print("打分处理完毕...")
 
+    def get_porn_score(self, img_path):
+        if self.scorer_type == PornScorer.TYPE_ONLINE:
+            return PornScorer.get_porn_score_online(img_path)
+        elif self.scorer_type == PornScorer.TYPE_OFFLINE:
+            return self.offline_scorer.yahoo_nsfw_classify(img_path)[1]
+        else:
+            raise UserWarning("scorer_type只能为[TYPE_ONLINE]或[TYPE_OFFLINE]其中之一！")
+
     @staticmethod
     @retry(wait_fixed=2000, stop_max_delay=60000)
-    def get_porn_score(img_path):
+    def get_porn_score_online(img_path):
         try:
             url = 'https://ai.hn-ssc.com/api/v1/image/get_vision_porn/'
             img_path = os.path.abspath(img_path)
@@ -55,7 +76,7 @@ class PornScorer:
             result = json.loads(r.content)
             info = json.loads(r.content)['data']
             score = info['normal_hot_porn']
-            return result, info, score
+            return score
         except Exception as e:
             print("打分失败了！！！")
             print(e)
