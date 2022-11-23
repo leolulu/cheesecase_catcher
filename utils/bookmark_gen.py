@@ -20,7 +20,7 @@ def scene_change_detection(video_path, threshold=0.4):
         if len(time_info_findinfo) > 0:
             time_info = time_info_findinfo[0]
             # pbar.update(_string_to_seconds(time_info)-pbar.n)
-            pbar.n = _string_to_seconds(time_info)
+            pbar.n = string_to_seconds(time_info)
             pbar.refresh()
 
     pbar.close()
@@ -36,12 +36,12 @@ def get_duration(video_path):
     if len(duration_info) == 0:
         raise UserWarning("没有检测到视频时间！")
     duration_info = duration_info[0]
-    seconds = _string_to_seconds(duration_info)
+    seconds = string_to_seconds(duration_info)
     print(f"视频时长为：{duration_info}，秒数为：{seconds}")
     return seconds
 
 
-def _string_to_seconds(time_str):
+def string_to_seconds(time_str):
     duration_info_without_milli = time_str.split('.')[0]
     (hour, minute, second) = duration_info_without_milli.split(':')
     seconds = int(hour)*3600 + int(minute)*60 + int(second)
