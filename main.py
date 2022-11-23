@@ -67,7 +67,7 @@ class CheesecaseCatcher:
         self.result_txt_path = self.porn_scorer.result_txt_path
 
     def sort_score_result(self):
-        print("从新排列结果顺序，重写文件...")
+        print("重新排列结果顺序，重写文件...")
         with open(self.result_txt_path, 'r', encoding='utf-8') as f:
             data = f.read().strip()
         with open(self.result_txt_path, 'w', encoding='utf-8') as f:
