@@ -74,7 +74,7 @@ def gen_bookmark(video_path, threshold=0.4):
 def gen_bookmark_auto_threshold(video_path, init_threshold=0.6):
     threshold = init_threshold
     while True:
-        print(f"当前阈值为【{threshold}】")
+        print(f"\n当前阈值为【{threshold}】")
         if_finish = gen_bookmark(video_path, threshold)
         if if_finish:
             break
