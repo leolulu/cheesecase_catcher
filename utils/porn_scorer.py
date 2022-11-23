@@ -3,6 +3,7 @@ import os
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor, wait
+from threading import Lock
 
 import requests
 from retrying import retry
@@ -20,6 +21,7 @@ class PornScorer:
         self.scorer_type = scorer_type
         self.core_num = core_num
         self._init_scorer()
+        self.lock = Lock()
         self.result_txt_path = ''
         self.futures = []
         self.b_time = time.time()
@@ -40,8 +42,9 @@ class PornScorer:
         def get_porn_score_with_txt(img_path):
             try:
                 score = self.get_porn_score(img_path)
-                with open(self.result_txt_path, 'a', encoding='utf-8') as f:  # type: ignore
-                    f.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
+                with self.lock:
+                    with open(self.result_txt_path, 'a', encoding='utf-8') as f:  # type: ignore
+                        f.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
                 self.pbar.update()
             except:
                 print(traceback.format_exc())
