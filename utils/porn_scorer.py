@@ -14,6 +14,7 @@ from tensorflow_nsfw.classify_nsfw import YahooNsfwClassify
 class PornScorer:
     TYPE_ONLINE = 'type_online'
     TYPE_OFFLINE = 'type_offline'
+    YAHOO_NSFW_CLASSIFY = None
 
     def __init__(self, scorer_type, core_num=10) -> None:
         self.scorer_type = scorer_type
@@ -25,7 +26,8 @@ class PornScorer:
 
     def _init_scorer(self):
         if self.scorer_type == PornScorer.TYPE_OFFLINE:
-            self.offline_scorer = YahooNsfwClassify()
+            if not PornScorer.YAHOO_NSFW_CLASSIFY:
+                PornScorer.YAHOO_NSFW_CLASSIFY = YahooNsfwClassify()
             self.core_num = 1
         self.executor = ThreadPoolExecutor(self.core_num)
 
@@ -54,7 +56,7 @@ class PornScorer:
         if self.scorer_type == PornScorer.TYPE_ONLINE:
             return PornScorer.get_porn_score_online(img_path)
         elif self.scorer_type == PornScorer.TYPE_OFFLINE:
-            return self.offline_scorer.yahoo_nsfw_classify(img_path)[1]
+            return PornScorer.YAHOO_NSFW_CLASSIFY.yahoo_nsfw_classify(img_path)[1]  # type: ignore
         else:
             raise UserWarning("scorer_type只能为[TYPE_ONLINE]或[TYPE_OFFLINE]其中之一！")
 
