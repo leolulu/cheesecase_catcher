@@ -84,12 +84,12 @@ class CheesecaseCatcher:
 
 if __name__ == '__main__':
     data_dir = 'data'
-    for i in os.listdir(data_dir):
-        if os.path.splitext(i)[-1] == '.mp4':
-            i_abs = os.path.join(os.path.abspath(data_dir), i)
-            try:
-                os.rename(i_abs, i_abs)
-            except:
-                continue
-            c = CheesecaseCatcher(i_abs, extractor_type=CheesecaseCatcher.TYPE_FFMPEG, scorer_type=PornScorer.TYPE_OFFLINE)
-            c.run()
+    for (dir_, _, file_) in os.walk(os.path.abspath(data_dir)):
+        for i in [os.path.join(dir_, f) for f in file_]:
+            if os.path.splitext(i)[-1] in ['.mp4', '.mkv', '.avi']:
+                try:
+                    os.rename(i, i)
+                except:
+                    continue
+                c = CheesecaseCatcher(i, extractor_type=CheesecaseCatcher.TYPE_FFMPEG, scorer_type=PornScorer.TYPE_OFFLINE)
+                c.run()
