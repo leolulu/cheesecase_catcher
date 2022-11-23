@@ -1,10 +1,8 @@
 import os
 import re
-import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, wait
 from datetime import datetime
-from utils.bookmark_gen import get_duration
 
 from utils.extracti_video_frames import extract_frame_opencv, extract_frame_opencv_ffmpeg, time_format
 from utils.porn_scorer import PornScorer
@@ -89,5 +87,9 @@ if __name__ == '__main__':
     for i in os.listdir(data_dir):
         if os.path.splitext(i)[-1] == '.mp4':
             i_abs = os.path.join(os.path.abspath(data_dir), i)
+            try:
+                os.rename(i_abs, i_abs)
+            except:
+                continue
             c = CheesecaseCatcher(i_abs, extractor_type=CheesecaseCatcher.TYPE_FFMPEG, scorer_type=PornScorer.TYPE_OFFLINE)
             c.run()
