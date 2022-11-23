@@ -11,7 +11,7 @@ def scene_change_detection(video_path, threshold=0.4):
     command = rf"""ffmpeg -i "{video_path}" -filter:v "select='gt(scene,{threshold})',showinfo" -f null - """
     print(f"开始检测场景转换: {command}")
     pbar = tqdm(total=get_duration(video_path), desc="转场识别")
-    proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
     result_strs = []
     for line in iter(proc.stdout.readline, ''):  # type: ignore
         line = line.strip()
@@ -28,7 +28,7 @@ def scene_change_detection(video_path, threshold=0.4):
 
 
 def get_duration(video_path):
-    command = rf"""ffprobe {video_path} """
+    command = rf"""ffprobe "{video_path}" """
     print(f"开始检测视频时长: {command}")
     proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outs, errs = proc.communicate()
