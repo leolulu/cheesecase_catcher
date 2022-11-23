@@ -81,7 +81,7 @@ def gen_bookmark_auto_threshold(video_path, init_threshold=0.6):
         if threshold == 0.1:
             print(f"阈值已为【{threshold}】，终止处理...")
         else:
-            threshold -= 0.1
+            threshold = round(threshold-0.1, 1)
 
 
 if __name__ == '__main__':
