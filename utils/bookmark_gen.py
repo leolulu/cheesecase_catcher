@@ -53,7 +53,7 @@ def gen_bookmark(video_path, threshold=0.4):
     scene_change_timestamp = scene_change_detection(video_path, threshold)
     if len(scene_change_timestamp) == 0:
         print(f"没有转场被检测出，当前阈值为：{threshold}")
-        return
+        return False
     bookmark_str = "[Bookmark]\n"
     idx = 0
 
@@ -67,11 +67,25 @@ def gen_bookmark(video_path, threshold=0.4):
     bookmark_path = os.path.splitext(video_path)[0]+'.pbf'
     with open(bookmark_path, 'w', encoding='utf-8') as f:
         f.write(bookmark_str)
-    print("处理完毕...")
+    print(f"处理完毕，使用阈值为【{threshold}】")
+    return True
+
+
+def gen_bookmark_auto_threshold(video_path, init_threshold=0.6):
+    threshold = init_threshold
+    while True:
+        print(f"当前阈值为【{threshold}】")
+        if_finish = gen_bookmark(video_path, threshold)
+        if if_finish:
+            break
+        if threshold == 0.1:
+            print(f"阈值已为【{threshold}】，终止处理...")
+        else:
+            threshold -= 0.1
 
 
 if __name__ == '__main__':
     try:
         gen_bookmark(sys.argv[1], float(sys.argv[2]))
     except:
-        gen_bookmark(sys.argv[1])
+        gen_bookmark_auto_threshold(sys.argv[1])
