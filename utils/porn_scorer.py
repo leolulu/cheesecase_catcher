@@ -19,7 +19,7 @@ class PornScorer:
         self.scorer_type = scorer_type
         self.core_num = core_num
         self._init_scorer()
-        self.result_txt_path = None
+        self.result_txt_path = ''
         self.futures = []
         self.b_time = time.time()
 
@@ -30,7 +30,7 @@ class PornScorer:
         self.executor = ThreadPoolExecutor(self.core_num)
 
     def set_param(self, output_pic_dir, task_count):
-        if self.result_txt_path is None:
+        if not self.result_txt_path:
             self.result_txt_path = os.path.join(output_pic_dir, 'porn_score_result.txt')
             self.pbar = tqdm(total=task_count, desc="打分")
 

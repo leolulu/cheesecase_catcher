@@ -68,9 +68,19 @@ class CheesecaseCatcher:
         self.porn_scorer.wait_finish()
         self.result_txt_path = self.porn_scorer.result_txt_path
 
+    def sort_score_result(self):
+        with open(self.result_txt_path, 'r', encoding='utf-8') as f:
+            data = f.read().strip()
+        with open(self.result_txt_path, 'w', encoding='utf-8') as f:
+            f.write("")
+        for row in sorted([i.split('\t') for i in data.split('\n')], key=lambda x: x[0]):
+            with open(self.result_txt_path, 'a', encoding='utf-8') as f:
+                f.write(f"{row[0]}\t{row[1]}\n")
+
     def run(self):
         print(f"[{datetime.now().strftime('%F %X')}] 开始处理：{self.video_path}")
         self.extract_frame_and_get_score()
+        self.sort_score_result()
 
 
 if __name__ == '__main__':
