@@ -77,7 +77,7 @@ class CheesecaseCatcher:
                 f.write(f"{row[0]}\t{row[1]}\n")
 
     def run(self):
-        print(f"[{datetime.now().strftime('%F %X')}] 开始处理：{self.video_path}")
+        print(f"\n[{datetime.now().strftime('%F %X')}] 开始处理：{self.video_path}")
         self.extract_frame_and_get_score()
         self.sort_score_result()
 

@@ -20,12 +20,12 @@ def extract_frame_opencv_ffmpeg(video_path, fps=1.0):
         shutil.rmtree(output_pic_dir)
         time.sleep(2)
     os.mkdir(output_pic_dir)
+    command = f'ffmpeg -i "{video_path}" -r {fps} -q:v 2 -f image2 "{output_pic_dir}/%08d.jpg"'
+    print(f"开始使用ffmpeg进行视频抽帧: {command}")
 
     video_duration = get_duration(video_path)
     yield (output_pic_dir, video_duration)
 
-    command = f'ffmpeg -i "{video_path}" -r {fps} -q:v 2 -f image2 "{output_pic_dir}/%08d.jpg"'
-    print(f"开始使用ffmpeg进行视频抽帧: {command}")
     pbar = tqdm(total=video_duration, desc="抽帧")
     proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
     for line in iter(proc.stdout.readline, ''):  # type: ignore
