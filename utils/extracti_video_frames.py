@@ -26,7 +26,7 @@ def extract_frame_opencv_ffmpeg(video_path, fps=1.0):
 
     command = f'ffmpeg -i "{video_path}" -r {fps} -q:v 2 -f image2 "{output_pic_dir}/%08d.jpg"'
     print(f"开始使用ffmpeg进行视频抽帧: {command}")
-    pbar = tqdm(total=video_duration, desc="ffnoeg抽帧")
+    pbar = tqdm(total=video_duration, desc="抽帧")
     proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
     for line in iter(proc.stdout.readline, ''):  # type: ignore
         line = line.strip()
@@ -65,7 +65,7 @@ def extract_frame_opencv(video_path, interval=1):
     print(f"视频帧数为：{fps}，总帧数为：{frame_count}")
 
     second = 0
-    for _ in tqdm(range(task_count), desc="opencv抽帧"):
+    for _ in tqdm(range(task_count), desc="抽帧"):
         vidcap.set(cv2.CAP_PROP_POS_MSEC, second*1000)
         (frameState, frame) = vidcap.read()
         output_pic_name = f"{time_format(second)}.jpg"
