@@ -62,7 +62,7 @@ class CheesecaseCatcher:
         fs = []
         for (output_pic_dir, video_duration) in extract_frame_opencv_ffmpeg(self.video_path, 1/self.interval):
             print(f"获得图像输出目录：{output_pic_dir}")
-            self.porn_scorer.set_param(output_pic_dir, video_duration/self.interval)
+            self.porn_scorer.set_param(output_pic_dir, int(video_duration/self.interval))
             fs.append(executor.submit(process_pics, output_pic_dir))
         wait(fs)
         self.porn_scorer.wait_finish()
