@@ -36,6 +36,7 @@ class PornScorer:
     def set_param(self, output_pic_dir, task_count):
         if not self.result_txt_path:
             self.result_txt_path = os.path.join(output_pic_dir, 'porn_score_result.txt')
+            self.result_file_handle = open(self.result_txt_path, 'a', encoding='utf-8')
             self.pbar = tqdm(total=task_count, desc="打分")
 
     def submit_get_score_task(self, output_pic_path):
@@ -43,8 +44,7 @@ class PornScorer:
             try:
                 score = self.get_porn_score(img_path)
                 with self.lock:
-                    with open(self.result_txt_path, 'a', encoding='utf-8') as f:  # type: ignore
-                        f.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
+                    self.result_file_handle.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
                 self.pbar.update()
             except:
                 print(traceback.format_exc())
@@ -53,6 +53,7 @@ class PornScorer:
     def wait_finish(self):
         wait(self.futures)
         self.pbar.close()
+        self.result_file_handle.close()
         print("打分处理完毕...")
 
     def get_porn_score(self, img_path):
