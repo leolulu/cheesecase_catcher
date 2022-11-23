@@ -71,4 +71,7 @@ def gen_bookmark(video_path, threshold=0.4):
 
 
 if __name__ == '__main__':
-    gen_bookmark(sys.argv[1])
+    try:
+        gen_bookmark(sys.argv[1], float(sys.argv[2]))
+    except:
+        gen_bookmark(sys.argv[1])
