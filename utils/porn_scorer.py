@@ -44,7 +44,7 @@ class PornScorer:
             try:
                 score = self.get_porn_score(img_path)
                 with self.lock:
-                    self.result_file_handle.write(f"{os.path.splitext(os.path.basename(img_path))[0]}\t{score}\n")
+                    self.result_file_handle.write(f"{img_path}\t{score}\n")
                 self.pbar.update()
             except:
                 print(traceback.format_exc())
