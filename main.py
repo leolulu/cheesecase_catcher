@@ -5,6 +5,7 @@ import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor, wait
 from datetime import datetime
+from queue import Empty, Queue
 
 from tqdm import tqdm
 
@@ -41,9 +42,16 @@ class CheesecaseCatcher:
         self.result_txt_path = self.porn_scorer.result_txt_path
 
     def extract_frame_and_get_score_ffmpeg(self):
-        def process_pics(output_pic_dir):
-            scan_left_times = 10
-            while scan_left_times > 0:
+        def process_pics(output_pic_dir, queue: Queue):
+            is_ffmpeg_processing = True
+            while is_ffmpeg_processing:
+                try:
+                    queue.get(block=False)
+                    is_ffmpeg_processing = False
+                    print("结束图像监控...")
+                except Empty:
+                    pass
+                time.sleep(1)
                 pic_names = [i for i in os.listdir(output_pic_dir) if re.match(r"^\d+$", os.path.splitext(i)[0])]
                 for pic_name in pic_names:
                     (pic_id, pic_ext) = os.path.splitext(pic_name)
@@ -58,18 +66,16 @@ class CheesecaseCatcher:
                     pic_renamed_path = os.path.join(output_pic_dir, f"{time_format(int(pic_id)-2)}{pic_ext}")
                     os.rename(pic_path, pic_renamed_path)
                     self.porn_scorer.submit_get_score_task(pic_renamed_path)
-                    scan_left_times = 10
-                scan_left_times -= 1
-                time.sleep(1)
-            print("结束图像监控...")
 
         executor = ThreadPoolExecutor(1)
         fs = []
+        queue = Queue()
         for (output_pic_dir, video_duration) in extract_frame_opencv_ffmpeg(self.video_path, 1/self.interval):
             print(f"获得图像输出目录：{output_pic_dir}")
             self.output_pic_dir = output_pic_dir
             self.porn_scorer.set_param(output_pic_dir, int(video_duration/self.interval))
-            fs.append(executor.submit(process_pics, output_pic_dir))
+            fs.append(executor.submit(process_pics, output_pic_dir, queue))
+        queue.put(False, block=False)
         wait(fs)
         self.porn_scorer.wait_finish()
         self.result_txt_path = self.porn_scorer.result_txt_path
@@ -97,22 +103,34 @@ class CheesecaseCatcher:
 
     def form_explicit_material(self):
         print("开始后处理结果图片和视频文件...")
-        self.explicit_material_dir = os.path.join(self.output_pic_dir, 'explicit_material')
-        self.explicit_material_pic_dir = os.path.join(self.explicit_material_dir, 'pic')
-        self.explicit_material_video_dir = os.path.join(self.explicit_material_dir, 'video')
-        if not os.path.exists(self.explicit_material_dir):
-            os.mkdir(self.explicit_material_dir)
-        if not os.path.exists(self.explicit_material_pic_dir):
-            os.mkdir(self.explicit_material_pic_dir)
-        if not os.path.exists(self.explicit_material_video_dir):
-            os.mkdir(self.explicit_material_video_dir)
-        for e_row in tqdm([i for i in self.sorted_data if i.score >= 80], desc="explicit后处理"):
-            shutil.copy(e_row.img_path, self.explicit_material_pic_dir)
-            output_vid_path = os.path.join(self.explicit_material_video_dir, f"{e_row.timestamp}.mp4")
-            log_path = os.path.abspath(os.path.join(self.explicit_material_video_dir, "one_clip_explicit_video.log"))
-            command = f'ffmpeg -y -ss {e_row.ffmpeg_timestamp} -t {self.interval} -i "{self.video_path}" "{output_vid_path}" 2>>"{log_path}"'
-            subprocess.call(command, shell=True)
-        concat_video(self.explicit_material_video_dir)
+        explicit_datas = [i for i in self.sorted_data if i.score >= 80]
+        if len(explicit_datas) > 0:
+            self.explicit_material_dir = os.path.join(self.output_pic_dir, 'explicit_material')
+            self.explicit_material_pic_dir = os.path.join(self.explicit_material_dir, 'pic')
+            self.explicit_material_video_dir = os.path.join(self.explicit_material_dir, 'video')
+            if not os.path.exists(self.explicit_material_dir):
+                os.mkdir(self.explicit_material_dir)
+            if not os.path.exists(self.explicit_material_pic_dir):
+                os.mkdir(self.explicit_material_pic_dir)
+            if not os.path.exists(self.explicit_material_video_dir):
+                os.mkdir(self.explicit_material_video_dir)
+            for e_row in tqdm(explicit_datas, desc="explicit后处理"):
+                shutil.copy(e_row.img_path, self.explicit_material_pic_dir)
+                output_vid_path = os.path.join(self.explicit_material_video_dir, f"{e_row.timestamp}.mp4")
+                log_path = os.path.abspath(os.path.join(self.explicit_material_video_dir, "one_clip_explicit_video.log"))
+                command = f'ffmpeg -y -ss {e_row.ffmpeg_timestamp} -t {self.interval} -i "{self.video_path}" "{output_vid_path}" 2>>"{log_path}"'
+                subprocess.call(command, shell=True)
+            concat_video(self.explicit_material_video_dir)
+        else:
+            print("没有explicit的data，跳过后处理...")
+        print("开始移动原始抽帧图像文件...")
+        self.moved_frames_dir = os.path.join(self.output_pic_dir, 'org_frames')
+        if not os.path.exists(self.moved_frames_dir):
+            os.mkdir(self.moved_frames_dir)
+        for row in self.sorted_data:
+            shutil.move(row.img_path, self.moved_frames_dir)
+            img_path_moved = os.path.join(self.moved_frames_dir, os.path.basename(row.img_path))
+            row.img_path_moved = img_path_moved  # type: ignore
         print("后处理完毕...")
 
     def run(self):
