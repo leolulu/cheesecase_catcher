@@ -13,6 +13,7 @@ from data_structure.result_row import ResultRow
 from utils.concat_video import concat_video
 from utils.extracti_video_frames import extract_frame_opencv, extract_frame_opencv_ffmpeg, time_format
 from utils.porn_scorer import PornScorer
+from utils.process_portion import get_diffrent_intervals_at_once
 
 
 class CheesecaseCatcher:
@@ -107,20 +108,29 @@ class CheesecaseCatcher:
         if len(explicit_datas) > 0:
             self.explicit_material_dir = os.path.join(self.output_pic_dir, 'explicit_material')
             self.explicit_material_pic_dir = os.path.join(self.explicit_material_dir, 'pic')
-            self.explicit_material_video_dir = os.path.join(self.explicit_material_dir, 'video')
             if not os.path.exists(self.explicit_material_dir):
                 os.mkdir(self.explicit_material_dir)
             if not os.path.exists(self.explicit_material_pic_dir):
                 os.mkdir(self.explicit_material_pic_dir)
-            if not os.path.exists(self.explicit_material_video_dir):
-                os.mkdir(self.explicit_material_video_dir)
-            for e_row in tqdm(explicit_datas, desc="explicit后处理"):
+            for e_row in explicit_datas:
                 shutil.copy(e_row.img_path, self.explicit_material_pic_dir)
-                output_vid_path = os.path.join(self.explicit_material_video_dir, f"{e_row.timestamp}.mp4")
-                log_path = os.path.abspath(os.path.join(self.explicit_material_video_dir, "one_clip_explicit_video.log"))
-                command = f'ffmpeg -y -ss {e_row.ffmpeg_timestamp} -t {self.interval} -i "{self.video_path}" "{output_vid_path}" 2>>"{log_path}"'
-                subprocess.call(command, shell=True)
-            concat_video(self.explicit_material_video_dir)
+
+            self.explicit_material_video_dirs = dict()
+            for (coverage, intervals) in get_diffrent_intervals_at_once([i.timestamp for i in explicit_datas], 3).items():
+                self.explicit_material_video_dirs[coverage] = os.path.join(self.explicit_material_dir, f'video_coverage-{coverage}')
+                if not os.path.exists(self.explicit_material_video_dirs[coverage]):
+                    os.mkdir(self.explicit_material_video_dirs[coverage])
+                for interval in tqdm(intervals, desc=f"抽取特定视频片段，当前coverage[{coverage}]"):
+                    begin_second = interval.lower
+                    end_second = interval.upper
+                    output_vid_path = os.path.join(
+                        self.explicit_material_video_dirs[coverage],
+                        "{}-{}.mp4".format(time_format(begin_second), time_format(end_second))
+                    )
+                    log_path = os.path.abspath(os.path.join(self.explicit_material_video_dirs[coverage], "one_clip_explicit_video.log"))
+                    command = f'ffmpeg -y -ss {begin_second} -to {end_second} -i "{self.video_path}" "{output_vid_path}" 2>>"{log_path}"'
+                    subprocess.call(command, shell=True)
+                concat_video(self.explicit_material_video_dirs[coverage])
         else:
             print("没有explicit的data，跳过后处理...")
         print("开始移动原始抽帧图像文件...")
@@ -130,7 +140,7 @@ class CheesecaseCatcher:
         for row in self.sorted_data:
             shutil.move(row.img_path, self.moved_frames_dir)
             img_path_moved = os.path.join(self.moved_frames_dir, os.path.basename(row.img_path))
-            row.img_path_moved = img_path_moved  # type: ignore
+            row.img_path_moved = img_path_moved
         print("后处理完毕...")
 
     def run(self):
