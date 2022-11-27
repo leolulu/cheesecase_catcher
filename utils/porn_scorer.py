@@ -9,6 +9,8 @@ import requests
 from retrying import retry
 from tqdm import tqdm
 
+from tensorflow_nsfw.classify_nsfw import YahooNsfwClassify
+
 
 class PornScorer:
     TYPE_ONLINE = 'type_online'
@@ -27,7 +29,6 @@ class PornScorer:
     def _init_scorer(self):
         if self.scorer_type == PornScorer.TYPE_OFFLINE:
             if not PornScorer.YAHOO_NSFW_CLASSIFY:
-                from tensorflow_nsfw.classify_nsfw import YahooNsfwClassify
                 PornScorer.YAHOO_NSFW_CLASSIFY = YahooNsfwClassify()
             self.core_num = 1
         self.executor = ThreadPoolExecutor(self.core_num)

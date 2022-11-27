@@ -14,11 +14,10 @@ import numpy as np
 IMAGE_LOADER_TENSORFLOW = "tensorflow"
 IMAGE_LOADER_YAHOO = "yahoo"
 
-tf.disable_v2_behavior()
-
 
 class YahooNsfwClassify:
     def __init__(self) -> None:
+        tf.disable_v2_behavior()
         self.model = OpenNsfwModel()
         self.sess = tf.Session()
         input_type = InputType[InputType.TENSOR.name]
