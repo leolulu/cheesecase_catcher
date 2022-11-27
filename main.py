@@ -140,7 +140,7 @@ class CheesecaseCatcher:
                     )
                     log_path = os.path.abspath(os.path.join(self.explicit_material_video_dirs[coverage], "one_clip_explicit_video.log"))
                     if self.video_regeneration_with_copy:
-                        command = f'ffmpeg -y -ss {begin_second} -to {end_second} -accurate_seek -i "{self.video_path}" -codec copy -avoid_negative_ts 1 "{output_vid_path}" 2>>"{log_path}"'
+                        command = f'ffmpeg -y -ss {begin_second} -to {end_second} -accurate_seek -i "{self.video_path}" -codec copy -map_chapters -1 -avoid_negative_ts 1 "{output_vid_path}" 2>>"{log_path}"'
                     else:
                         command = f'ffmpeg -y -ss {begin_second} -to {end_second} -i "{self.video_path}" "{output_vid_path}" 2>>"{log_path}"'
                     subprocess.call(command, shell=True)
