@@ -165,12 +165,13 @@ class CheesecaseCatcher:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_dir', help='视频文件目录的路径，可以使用相对路径，默认为当前目录的data文件夹', default='data')
     parser.add_argument('-i', '--interval', help='抽帧间隔，即每几秒抽一帧，默认1秒一帧', default=1, type=int)
-    parser.add_argument('-c', '--video_regeneration_with_copy', help='使用复制音视频流的方式进行视频片段的再生成，默认为False，需要进行再编码', action='store_false')
+    parser.add_argument('-c', '--video_regeneration_with_copy', help='使用复制音视频流的方式进行视频片段的再生成，默认为False，需要进行再编码', action='store_true')
     parser.add_argument('-l', '--video_regeneration_coverage', help='进行视频片段划分的黏性阈值，默认为5秒', default=5, type=int)
     args = parser.parse_args()
+    import tensorflow.compat.v1  # type: ignore
     for (dir_, _, file_) in os.walk(os.path.abspath(args.data_dir)):
         for v_path in [os.path.join(dir_, f) for f in file_]:
             if (os.path.splitext(v_path)[-1] in ['.mp4', '.mkv', '.avi', '.flv']) and ('explicit_material' not in v_path):
