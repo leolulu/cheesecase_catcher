@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import shutil
@@ -20,9 +21,19 @@ class CheesecaseCatcher:
     TYPE_OPENCV = 'type_opencv'
     TYPE_FFMPEG = 'type_ffmpeg'
 
-    def __init__(self, video_path, extractor_type, scorer_type, interval=1) -> None:
+    def __init__(
+        self,
+        video_path,
+        extractor_type,
+        scorer_type,
+        interval,
+        video_regeneration_with_copy,
+        video_regeneration_coverage
+    ) -> None:
         self.video_path = os.path.abspath(video_path)
         self.interval = interval
+        self.video_regeneration_with_copy = video_regeneration_with_copy
+        self.video_regeneration_coverage = video_regeneration_coverage
         self.extractor_type = extractor_type
         self.porn_scorer = PornScorer(scorer_type=scorer_type)
 
@@ -116,7 +127,7 @@ class CheesecaseCatcher:
                 shutil.copy(e_row.img_path, self.explicit_material_pic_dir)
 
             self.explicit_material_video_dirs = dict()
-            for (coverage, intervals) in get_diffrent_intervals_at_once([i.timestamp for i in explicit_datas], 3).items():
+            for (coverage, intervals) in get_diffrent_intervals_at_once([i.timestamp for i in explicit_datas], self.video_regeneration_coverage).items():
                 self.explicit_material_video_dirs[coverage] = os.path.join(self.explicit_material_dir, f'video_coverage-{coverage}')
                 if not os.path.exists(self.explicit_material_video_dirs[coverage]):
                     os.mkdir(self.explicit_material_video_dirs[coverage])
@@ -128,7 +139,10 @@ class CheesecaseCatcher:
                         "{}-{}.mp4".format(time_format(begin_second), time_format(end_second))
                     )
                     log_path = os.path.abspath(os.path.join(self.explicit_material_video_dirs[coverage], "one_clip_explicit_video.log"))
-                    command = f'ffmpeg -y -ss {begin_second} -to {end_second} -i "{self.video_path}" "{output_vid_path}" 2>>"{log_path}"'
+                    if self.video_regeneration_with_copy:
+                        command = f'ffmpeg -y -ss {begin_second} -to {end_second} -accurate_seek -i "{self.video_path}" -codec copy -avoid_negative_ts 1 "{output_vid_path}" 2>>"{log_path}"'
+                    else:
+                        command = f'ffmpeg -y -ss {begin_second} -to {end_second} -i "{self.video_path}" "{output_vid_path}" 2>>"{log_path}"'
                     subprocess.call(command, shell=True)
                 concat_video(self.explicit_material_video_dirs[coverage])
         else:
@@ -151,13 +165,25 @@ class CheesecaseCatcher:
 
 
 if __name__ == '__main__':
-    data_dir = 'data'
-    for (dir_, _, file_) in os.walk(os.path.abspath(data_dir)):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_dir', help='视频文件目录的路径，可以使用相对路径，默认为当前目录的data文件夹', default='data')
+    parser.add_argument('-i', '--interval', help='抽帧间隔，即每几秒抽一帧，默认1秒一帧', default=1, type=int)
+    parser.add_argument('-c', '--video_regeneration_with_copy', help='使用复制音视频流的方式进行视频片段的再生成，默认为False，需要进行再编码', action='store_false')
+    parser.add_argument('-l', '--video_regeneration_coverage', help='进行视频片段划分的黏性阈值，默认为5秒', default=5, type=int)
+    args = parser.parse_args()
+    for (dir_, _, file_) in os.walk(os.path.abspath(args.data_dir)):
         for v_path in [os.path.join(dir_, f) for f in file_]:
-            if (os.path.splitext(v_path)[-1] in ['.mp4', '.mkv', '.avi']) and ('explicit_material' not in v_path):
+            if (os.path.splitext(v_path)[-1] in ['.mp4', '.mkv', '.avi', '.flv']) and ('explicit_material' not in v_path):
                 try:
                     os.rename(v_path, v_path)
                 except:
                     continue
-                c = CheesecaseCatcher(v_path, extractor_type=CheesecaseCatcher.TYPE_FFMPEG, scorer_type=PornScorer.TYPE_OFFLINE)
+                c = CheesecaseCatcher(
+                    v_path,
+                    extractor_type=CheesecaseCatcher.TYPE_FFMPEG,
+                    scorer_type=PornScorer.TYPE_OFFLINE,
+                    interval=args.interval,
+                    video_regeneration_with_copy=args.video_regeneration_with_copy,
+                    video_regeneration_coverage=args.video_regeneration_coverage
+                )
                 c.run()
