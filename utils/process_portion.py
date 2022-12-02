@@ -30,6 +30,8 @@ def get_diffrent_intervals_at_once(timestamps, max_coverage):
     intervals = dict()
     for coverage_ in range(max_coverage):
         coverage = coverage_ + 1
+        if (coverage > 10) and (coverage % 10 != 0):
+            continue
         ep = ExplicitPortion(coverage)
         for timestamp in timestamps:
             ep.add_timestamp_portion(timestamp)
@@ -46,4 +48,4 @@ if __name__ == '__main__':
         score = float(row[1])
         if score >= 80:
             ep.add_timestamp_portion(timestamp)
-    print(ep.get_p(),ep.p)
+    print(ep.get_p(), ep.p)
