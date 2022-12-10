@@ -30,7 +30,9 @@ def get_diffrent_intervals_at_once(timestamps, max_coverage):
     intervals = dict()
     for coverage_ in range(max_coverage):
         coverage = coverage_ + 1
-        if (coverage > 10) and (coverage % 10 != 0):
+        if (coverage > 10) and (coverage % 30 != 0):
+            continue
+        if (coverage <= 10) and (coverage not in [1, 10]):
             continue
         ep = ExplicitPortion(coverage)
         for timestamp in timestamps:
