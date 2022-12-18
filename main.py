@@ -12,9 +12,10 @@ from tqdm import tqdm
 
 from data_structure.result_row import ResultRow
 from utils.concat_video import concat_video
-from utils.extracti_video_frames import extract_frame_opencv, extract_frame_opencv_ffmpeg, time_format
+from utils.extracti_video_frames import extract_frame_opencv, extract_frame_ffmpeg, time_format
 from utils.porn_scorer import PornScorer
 from utils.process_portion import get_diffrent_intervals_at_once
+from utils.score_visualization import prepare_score_for_visualization, save_bar_visualization
 
 
 class CheesecaseCatcher:
@@ -82,7 +83,7 @@ class CheesecaseCatcher:
         executor = ThreadPoolExecutor(1)
         fs = []
         queue = Queue()
-        for (output_pic_dir, video_duration) in extract_frame_opencv_ffmpeg(self.video_path, 1/self.interval):
+        for (output_pic_dir, video_duration) in extract_frame_ffmpeg(self.video_path, 1/self.interval):
             print(f"获得图像输出目录：{output_pic_dir}")
             self.output_pic_dir = output_pic_dir
             self.porn_scorer.set_param(output_pic_dir, int(video_duration/self.interval))
@@ -157,10 +158,18 @@ class CheesecaseCatcher:
             row.img_path_moved = img_path_moved
         print("后处理完毕...")
 
+    def gen_score_image_or_pdf(self):
+        data = prepare_score_for_visualization(self.result_txt_path)
+        save_bar_visualization(
+            data,
+            os.path.splitext(self.result_txt_path)[0] + '.pdf'
+        )
+
     def run(self):
         print(f"\n[{datetime.now().strftime('%F %X')}] 开始处理：{self.video_path}")
         self.extract_frame_and_get_score()
         self.sort_score_result()
+        self.gen_score_image_or_pdf()
         self.form_explicit_material()
 
 

@@ -10,7 +10,7 @@ import cv2
 from tqdm import tqdm
 
 
-def extract_frame_opencv_ffmpeg(video_path, fps=1.0):
+def extract_frame_ffmpeg(video_path, fps=1.0):
     from utils.bookmark_gen import get_duration, string_to_seconds
     video_path = os.path.abspath(video_path)
     base_dir = os.path.dirname(video_path)
