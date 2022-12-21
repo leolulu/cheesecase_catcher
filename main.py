@@ -159,10 +159,11 @@ class CheesecaseCatcher:
         print("后处理完毕...")
 
     def gen_score_image_or_pdf(self):
+        print("开始将打分结果生成可视化文件...")
         data = prepare_score_for_visualization(self.result_txt_path)
         save_bar_visualization(
             data,
-            os.path.splitext(self.result_txt_path)[0] + '.pdf'
+            os.path.splitext(self.result_txt_path)[0]
         )
 
     def run(self):
