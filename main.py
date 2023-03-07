@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from data_structure.result_row import ResultRow
 from utils.concat_video import concat_video
-from utils.extracti_video_frames import extract_frame_opencv, extract_frame_ffmpeg, time_format
+from utils.extract_video_frames import extract_frame_opencv, extract_frame_ffmpeg, time_format
 from utils.porn_scorer import PornScorer
 from utils.process_portion import get_diffrent_intervals_at_once
 from utils.score_visualization import prepare_score_for_visualization, save_bar_visualization
