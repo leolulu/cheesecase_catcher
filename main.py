@@ -143,7 +143,7 @@ class CheesecaseCatcher:
                     if self.video_regeneration_with_copy:
                         command = f'ffmpeg -y -ss {begin_second} -to {end_second} -accurate_seek -i "{self.video_path}" -codec copy -map_chapters -1 -avoid_negative_ts 1 "{output_vid_path}" 2>>"{log_path}"'
                     else:
-                        command = rf'ffmpeg -y -ss {begin_second} -to {end_second} -i "{self.video_path}" -vf "scale=w=min(1920\, iw):h=min(1080\, ih)" -map_chapters -1 "{output_vid_path}" 2>>"{log_path}"'
+                        command = rf'ffmpeg -y -ss {begin_second} -to {end_second} -i "{self.video_path}" -vf "scale=w=min(1920\, iw):h=min(1080\, ih):force_original_aspect_ratio=decrease" -map_chapters -1 "{output_vid_path}" 2>>"{log_path}"'
                     subprocess.call(command, shell=True)
                 concat_video(self.explicit_material_video_dirs[coverage])
         else:
