@@ -10,11 +10,12 @@ from queue import Empty, Queue
 
 from tqdm import tqdm
 
+from constants.score_threshold import SCORE_THRESHOLD
 from data_structure.result_row import ResultRow
 from utils.concat_video import concat_video
 from utils.extract_video_frames import extract_frame_opencv, extract_frame_ffmpeg, time_format
 from utils.porn_scorer import PornScorer
-from utils.process_portion import get_diffrent_intervals_at_once
+from utils.process_portion import get_different_intervals_at_once
 from utils.score_visualization import prepare_score_for_visualization, save_bar_visualization
 
 
@@ -104,19 +105,19 @@ class CheesecaseCatcher:
             img_path = row[0]
             timestamp = os.path.splitext(os.path.basename(img_path))[0]
             score = row[1]
-            score_80_filterd = score if float(score) >= 80 else 0
-            return ResultRow(img_path, timestamp, score, score_80_filterd)
+            score_filtered = score if float(score) >= SCORE_THRESHOLD else 0
+            return ResultRow(img_path, timestamp, score, score_filtered)
 
         sorted_data = sorted([cut_row(i.split('\t')) for i in data.split('\n')], key=lambda x: x.timestamp)
 
         for rr in sorted_data:
             with open(self.result_txt_path, 'a', encoding='utf-8') as f:
-                f.write(f"{rr.timestamp}\t{rr.score}\t{rr.score_80_filterd}\n")
+                f.write(f"{rr.timestamp}\t{rr.score}\t{rr.score_filtered}\n")
         self.sorted_data = sorted_data
 
     def form_explicit_material(self):
         print("开始后处理结果图片和视频文件...")
-        explicit_datas = [i for i in self.sorted_data if i.score >= 80]
+        explicit_datas = [i for i in self.sorted_data if i.score >= SCORE_THRESHOLD]
         if len(explicit_datas) > 0:
             self.explicit_material_dir = os.path.join(self.output_pic_dir, 'explicit_material')
             self.explicit_material_pic_dir = os.path.join(self.explicit_material_dir, 'pic')
@@ -128,7 +129,7 @@ class CheesecaseCatcher:
                 shutil.copy(e_row.img_path, self.explicit_material_pic_dir)
 
             self.explicit_material_video_dirs = dict()
-            for (coverage, intervals) in get_diffrent_intervals_at_once([i.timestamp for i in explicit_datas], self.video_regeneration_coverage).items():
+            for (coverage, intervals) in get_different_intervals_at_once([i.timestamp for i in explicit_datas], self.video_regeneration_coverage).items():
                 self.explicit_material_video_dirs[coverage] = os.path.join(self.explicit_material_dir, f'video_coverage-{coverage}')
                 if not os.path.exists(self.explicit_material_video_dirs[coverage]):
                     os.mkdir(self.explicit_material_video_dirs[coverage])

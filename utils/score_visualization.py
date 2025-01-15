@@ -1,3 +1,4 @@
+from constants.score_threshold import SCORE_THRESHOLD
 import math
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import MultipleLocator   # type: ignore
@@ -14,7 +15,7 @@ def prepare_score_for_visualization(porn_score_result_path):
 def save_bar_visualization(data, save_name):
     x = [i[0] for i in data]
     y = [i[1] for i in data]
-    color = ['crimson' if i >= 80 else '#1f77b4' for i in y]
+    color = ['crimson' if i >= SCORE_THRESHOLD else '#1f77b4' for i in y]
 
     x_inch = len(data)/3
     print(f"当前data数量为{len(data)}，x_inch为{x_inch}")
@@ -31,7 +32,7 @@ def save_bar_visualization(data, save_name):
     plt.xlabel("time")
     plt.ylabel('score')
     plt.xticks(rotation=45, fontsize=40)
-    plt.axhline(80, linestyle='--', c='gray')
+    plt.axhline(SCORE_THRESHOLD, linestyle='--', c='gray')
     plt.margins(x=0)
     locator = MultipleLocator(3)
     locator.MAXTICKS = int(max(math.ceil(len(x)/3)+3, locator.MAXTICKS))

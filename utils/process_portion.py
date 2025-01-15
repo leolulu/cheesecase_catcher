@@ -1,3 +1,4 @@
+from constants.score_threshold import SCORE_THRESHOLD
 import portion as P
 from portion.interval import Interval
 
@@ -26,7 +27,7 @@ class ExplicitPortion:
         return self.p & P.closed(0, P.inf)
 
 
-def get_diffrent_intervals_at_once(timestamps, max_coverage):
+def get_different_intervals_at_once(timestamps, max_coverage):
     intervals = dict()
     for coverage_ in range(max_coverage):
         coverage = coverage_ + 1
@@ -48,6 +49,6 @@ if __name__ == '__main__':
     for row in [i.split('\t') for i in data]:
         timestamp = row[0]
         score = float(row[1])
-        if score >= 80:
+        if score >= SCORE_THRESHOLD:
             ep.add_timestamp_portion(timestamp)
     print(ep.get_p(), ep.p)
